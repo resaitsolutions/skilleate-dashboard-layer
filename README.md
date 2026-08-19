@@ -11,9 +11,17 @@ standalone.
   mounts under the `/app/*` prefix instead of the root `/` when a host
   project extends this layer alongside its own marketing/landing pages.
 - Every internal route reference (`useDashboard.ts` shortcuts,
-  `layouts/default.vue` navigation + command palette, `UserMenu.vue`,
+  `layouts/dashboard.vue` navigation + command palette, `UserMenu.vue`,
   `pages/app/index.vue`, `pages/app/settings.vue`) updated to the `/app`
   prefix.
+- `app/layouts/default.vue` renamed to `app/layouts/dashboard.vue`, and
+  every top-level page under `pages/app/*` now declares
+  `definePageMeta({ layout: 'dashboard' })` explicitly. A host project
+  extending this layer alongside another template almost certainly ships
+  its own `layouts/default.vue` (for its marketing pages) — under Nuxt's
+  layer priority rules the host's `default.vue` always wins the name
+  collision, so this layer never relies on the `default` name and instead
+  ships (and references) a uniquely-named layout that cannot be shadowed.
 - `nuxt.config.ts`: added `$meta.name: 'dashboard'` (produces the
   `#layers/dashboard` alias for the host project) and switched `css` to an
   absolute path via `fileURLToPath`/`join`, since relative paths in a
@@ -37,9 +45,11 @@ export default defineNuxtConfig({
 
 The dashboard becomes available at `/app`, `/app/inbox`, `/app/customers`,
 `/app/settings` (and its `general`/`members`/`notifications`/`security`
-sub-routes) in the host project, using the host's own `app.vue` and root
-layout resolution — this layer only contributes its `pages/app/*` and the
-`default` layout (referenced by those pages).
+sub-routes) in the host project, using the host's own `app.vue` for the
+root shell. This layer contributes its `pages/app/*` plus a uniquely-named
+`dashboard` layout (`layouts/dashboard.vue`) that every one of those pages
+opts into explicitly via `definePageMeta`, so it never depends on — and
+never collides with — the host project's own `layouts/default.vue`.
 
 Pin a tag/branch/commit for reproducible builds:
 
